@@ -28,4 +28,4 @@ npm start
 
 
 
-2. 2. Installez les dépendances
+
