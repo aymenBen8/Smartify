@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        #menu {
+            display: flex;
+            justify-content: space-between;
+            background-color: #333;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+        #menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        #menu a:hover {
+            text-decoration: underline;
+        }
+        #menu button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        #menu button:hover {
+            background-color: #0056b3;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease-in-out;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .card p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .card button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            align-self: center;
+            margin-top: auto;
+        }
+        .card button:hover {
+            background-color: #0056b3;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu pour les étudiants -->
+    <div id="menu">
+        <div>
+            <a href="/dashboard">Tableau de bord</a>
+            <a href="/ressourcesEtudiant">Cours</a>
+            <a href="/student-video-courses">Cours Video</a>
+            <a href="/quizzes">Quizz</a>
+            <a href="/modifier-profil-etudiant">Profil</a>
+        </div>
+        <div>
+            <form id="logoutForm" action="/logout" method="get" style="display: inline;">
+                <button type="submit">Déconnexion</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Quiz disponibles</h1>
+        <div class="grid" id="quizList"></div>
+    </div>
+
+    <script>
+        fetch('/api/quiz/list')
+            .then(response => response.json())
+            .then(quizzes => {
+                const quizListElement = document.getElementById('quizList');
+                quizzes.forEach(quiz => {
+                    const quizElement = document.createElement('div');
+                    quizElement.className = 'card';
+                    quizElement.innerHTML = `
+                        <h2>${quiz.title}</h2>
+                        <p>${quiz.description}</p>
+                        <p>Unité d'enseignement: ${quiz.teachingUnit}</p>
+                        <p>Auteur: ${quiz.author.firstName} ${quiz.author.lastName}</p>
+                        <button onclick="startQuiz('${quiz._id}')">Commencer le quiz</button>
+                    `;
+                    quizListElement.appendChild(quizElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des quiz');
+            });
+
+        function startQuiz(quizId) {
+            window.location.href = `/quiz/${quizId}`;
+        }
+    </script>
+</body>
+</html>

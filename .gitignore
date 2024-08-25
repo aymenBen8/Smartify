@@ -1,0 +1,20 @@
+# Dépendances
+/node_modules
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de build
+/dist
+/build
+
+
+# Fichiers de sauvegarde
+*.bak
+
+
+# Fichiers de cache
+.cache
+.npm
+

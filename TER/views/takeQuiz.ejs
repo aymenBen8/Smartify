@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= quiz.title %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #quiz-container {
+            background-color: #D3D3D3;
+            border-radius: 15px;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .question-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .option {
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+        }
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+        #next-button {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 20px;
+            background-color: #A9A9A9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #next-button:hover {
+            background-color: #888888;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <div class="quiz-header">
+            <span>Score : <span id="score">0</span> / <%= quiz.questions.length %></span>
+            <span>Question : <span id="question-number">1</span> / <%= quiz.questions.length %></span>
+        </div>
+        <div class="question-container" id="question"></div>
+        <div class="options-container" id="options"></div>
+        <button id="next-button">Next Question</button>
+    </div>
+
+    <script>
+        const quiz = <%- JSON.stringify(quiz) %>;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const userAnswers = [];
+
+        function loadQuestion() {
+            const question = quiz.questions[currentQuestionIndex];
+            document.getElementById('question').textContent = question.question;
+            document.getElementById('question-number').textContent = currentQuestionIndex + 1;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = answer;
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectOption(optionIndex) {
+            userAnswers[currentQuestionIndex] = quiz.questions[currentQuestionIndex].answers[optionIndex];
+            document.querySelectorAll('.option').forEach((btn, index) => {
+                btn.style.backgroundColor = index === optionIndex ? '#007bff' : 'white';
+                btn.style.color = index === optionIndex ? 'white' : 'black';
+            });
+        }
+
+        document.getElementById('next-button').addEventListener('click', () => {
+            if (currentQuestionIndex < quiz.questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                submitQuiz();
+            }
+        });
+
+        async function submitQuiz() {
+            const response = await fetch('/api/quiz/<%= quiz._id %>/answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ answers: userAnswers }),
+            });
+            const result = await response.json();
+            alert(`Votre score : ${result.score}%`);
+            window.location.href = '/userSpace';
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
+

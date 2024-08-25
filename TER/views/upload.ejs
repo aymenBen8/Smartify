@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Télécharger un Document</title>
+    <link href="/styles/userSpace.css" rel="stylesheet">
+</head>
+<body>
+    <h1>Télécharger un Document</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="pdfFile" accept="application/pdf" required>
+        <button type="submit">Télécharger</button>
+    </form>
+</body>
+</html>

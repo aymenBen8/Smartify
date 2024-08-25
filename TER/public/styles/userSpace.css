@@ -1,0 +1,53 @@
+body, html{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#menu {
+    margin: 0;
+    width: 100%;
+    height: 80px; /* Réduire la hauteur de la barre de navigation */
+    background-color: hsl(0, 0%, 20%);
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px; /* Ajout d'un padding pour espacer les éléments */
+}
+
+#menu a {
+    display: inline-block;
+    color: white;
+    text-align: center;
+    padding: 4px 8px; /* Réduire le padding pour chaque élément */
+    font-size: 14px; /* Réduire la taille de la police */
+    text-decoration: none;
+    height: 80px;
+    width: 120px;
+    line-height: 70px;
+}
+
+#menu a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+/* Styles pour l'affichage du nom d'utilisateur */
+#user {
+    color: white;
+    text-align: center;
+    margin-right: 20px; /* Espacement entre le nom d'utilisateur et le bouton de déconnexion */
+    font-size: 14px; /* Réduire la taille de la police */
+}
+
+#logoutForm button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff; /* Couleur du texte pour le bouton de déconnexion */
+    font-weight: bold;
+    text-decoration: underline;
+    font-size: 14px; /* Réduire la taille de la police */
+}

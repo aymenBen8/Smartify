@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Salon Vidéo</title>
+    <link rel="stylesheet" href="/styles/videoChat.css">
+    <style>
+        #video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 300px);
+            grid-auto-rows: 300px;
+        }
+    
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        #controls button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #controls button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="user-list-container">
+        <h3>Utilisateurs Connectés</h3>
+        <ul id="user-list"></ul>
+    </div>
+    <div id="video-grid"></div>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <form id="chat-form">
+            <input id="message-input" type="text" placeholder="Tapez votre message...">
+            <button type="submit">Envoyer</button>
+        </form>
+    </div>
+    <div id="controls">
+        <button id="disconnect-btn">Quitter le salon</button>
+        <button id="toggle-audio-btn">Couper le micro</button>
+        <button id="toggle-video-btn">Couper la caméra</button>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script>
+        let myStream;
+        const socket = io('/');
+        const userList = document.getElementById('user-list');
+        const videoGrid = document.getElementById('video-grid');
+        const myPeer = new Peer(undefined, {
+            path: '/peerjs',
+            host: '/', // Remplacez par votre adresse IP locale
+            port: '3000',
+            secure: true, // Changez à true si vous utilisez HTTPS
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
+                ]
+            },
+            debug: 3
+        });
+        const peers = {};
+        let isAudioEnabled = true;
+        let isVideoEnabled = true;
+
+        function createVideo() {
+            const video = document.createElement('video');
+            video.playsInline = true;
+            video.autoplay = true;
+            return video;
+        }
+
+        function addVideoStream(video, stream, isLocal = false) {
+    console.log(`Attempting to add stream: ${stream.id}, isLocal: ${isLocal}`);
+    video.srcObject = stream;
+    video.addEventListener('loadedmetadata', () => {
+        video.play().catch(e => console.error("Erreur lors de la lecture de la vidéo:", e));
+    });
+    if (isLocal) {
+        video.muted = true;
+    }
+    videoGrid.append(video);
+    console.log(`Added video stream: ${stream.id}`);
+    console.log(`Vidéo ajoutée au grid. Nombre total de vidéos : ${videoGrid.children.length}`);
+}
+
+        function connectToNewUser(userId, stream) {
+    console.log(`Connecting to new user: ${userId}`);
+    const call = myPeer.call(userId, stream);
+    const video = createVideo();
+    call.on('stream', userVideoStream => {
+        console.log(`Received stream from user: ${userId}, stream ID: ${userVideoStream.id}`);
+        addVideoStream(video, userVideoStream, false);
+    });
+    call.on('close', () => {
+        video.remove();
+    });
+    peers[userId] = call;
+}
+
+async function initializeMediaStream() {
+    console.log("Initialisation du flux média...");
+    
+    try {
+        myStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: 'user'
+            },
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            }
+        });
+
+        console.log("Flux média obtenu avec succès:", myStream);
+        const videoTrack = myStream.getVideoTracks()[0];
+        if (videoTrack) {
+            console.log("Piste vidéo trouvée:", videoTrack.label);
+        } else {
+            console.warn("Aucune piste vidéo trouvée dans le flux");
+        }
+        checkAudioTracks(myStream);
+        addVideoStream(createVideo(), myStream, true);
+
+        myPeer.on('call', call => {
+            console.log(`Received call from: ${call.peer}`);
+            call.answer(myStream);
+            const video = createVideo();
+            call.on('stream', userVideoStream => {
+                console.log(`Received stream in call from: ${call.peer}, stream ID: ${userVideoStream.id}`);
+                addVideoStream(video, userVideoStream, false);
+            });
+        });
+
+        myPeer.on('open', id => {
+            console.log(`PeerJS connection opened with ID: ${id}`);
+            const roomId = '<%= roomId %>';
+            console.log(`Attempting to join room: ${roomId}`);
+            socket.emit('join-room', roomId, id);
+        });
+
+        socket.on('user-connected', userId => {
+            console.log(`User connected: ${userId}`);
+            setTimeout(() => {
+                connectToNewUser(userId, myStream);
+            }, 1000);
+        });
+
+        socket.on('user-disconnected', userId => {
+            console.log(`User disconnected: ${userId}`);
+            if (peers[userId]) {
+                peers[userId].close();
+            }
+            removeUserFromList(userId);
+        });
+
+        socket.on('all-users', users => {
+            users.forEach(userId => {
+                if (userId !== myPeer.id) {
+                    addUserToList(userId);
+                    connectToNewUser(userId, myStream);
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error("Erreur lors de l'initialisation du flux média:", error);
+        alert("Une erreur est survenue lors de l'initialisation du flux média. Veuillez vérifier vos permissions et vos périphériques.");
+    }
+}
+        async function checkPermissions() {
+            try {
+                const result = await navigator.permissions.query({name: 'camera'});
+                if (result.state === 'granted') {
+                    console.log('Permission caméra accordée');
+                } else {
+                    console.warn('Permission caméra non accordée');
+                    alert('Veuillez accorder la permission d\'accès à la caméra pour utiliser cette application.');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification des permissions:', error);
+            }
+        }
+
+        function checkAudioTracks(stream) {
+            const audioTracks = stream.getAudioTracks();
+            console.log(`Nombre de pistes audio: ${audioTracks.length}`);
+            audioTracks.forEach((track, index) => {
+                console.log(`Piste audio ${index}: enabled = ${track.enabled}, muted = ${track.muted}`);
+            });
+        }
+
+        socket.on('user-disconnected', userId => {
+            console.log(`User disconnected: ${userId}`);
+            if (peers[userId]) {
+                console.log(`Closing peer connection for user: ${userId}`);
+                peers[userId].close();
+            }
+            removeUserFromList(userId);
+        });
+
+        myPeer.on('open', id => {
+            console.log(`PeerJS connection opened with ID: ${id}`);
+            const roomId = '<%= roomId %>'; // Passer le roomId depuis le backend
+            console.log(`Attempting to join room: ${roomId}`);
+            socket.emit('join-room', roomId, id);
+        });
+
+        myPeer.on('connection', (conn) => {
+            console.log('Nouvelle connexion PeerJS établie:', conn);
+        });
+
+        myPeer.on('disconnected', () => {
+            console.log('PeerJS disconnected');
+        });
+
+        myPeer.on('close', () => {
+            console.log('PeerJS connection closed');
+        });
+
+        myPeer.on('error', (err) => {
+            console.error('PeerJS encountered error: ', err);
+            alert('Erreur PeerJS: ' + err);
+        });
+
+        socket.on('connect', () => {
+            console.log('Socket.IO connected successfully');
+            initializeMediaStream();
+        });
+
+        socket.on('error', (error) => {
+            console.error('Socket.IO error:', error);
+            alert('Erreur Socket.IO: ' + error);
+        });
+
+        function addUserToList(userId) {
+            const userItem = document.createElement('li');
+            userItem.id = `user-${userId}`;
+            userItem.innerText = userId;
+            userList.appendChild(userItem);
+        }
+
+        function removeUserFromList(userId) {
+            const userItem = document.getElementById(`user-${userId}`);
+            if (userItem) {
+                userItem.remove();
+            }
+        }
+
+        // Chat functionality
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const messageContainer = document.getElementById('messages');
+
+        chatForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const message = messageInput.value;
+            console.log(`Sending message: ${message}`);
+            socket.emit('message', message);
+            messageInput.value = '';
+        });
+
+        socket.on('createMessage', message => {
+            console.log(`New message: ${message}`);
+            const messageElement = document.createElement('div');
+            messageElement.innerText = message;
+            messageContainer.append(messageElement);
+        });
+
+        // Bouton de déconnexion
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        disconnectBtn.addEventListener('click', () => {
+            console.log('Bouton de déconnexion cliqué');
+
+            if (myStream) {
+                myStream.getTracks().forEach(track => {
+                    track.stop();
+                    console.log(`Track ${track.kind} arrêté`);
+                });
+            }
+            
+            for (let peerId in peers) {
+                peers[peerId].close();
+                console.log(`Connexion peer ${peerId} fermée`);
+            }
+            
+            if (myPeer) {
+                myPeer.destroy();
+                console.log('Peer détruit');
+            }
+            
+            if (socket && socket.connected) {
+                socket.disconnect();
+                console.log('Socket déconnecté');
+            }
+            
+            console.log('Tentative de redirection...');
+            window.location.href = '/userSpace';
+
+            setTimeout(() => {
+                console.log('Redirection forcée après 2 secondes');
+                window.location.replace('/userSpace');
+            }, 2000);
+        });
+
+        // Contrôle audio
+        const toggleAudioBtn = document.getElementById('toggle-audio-btn');
+        toggleAudioBtn.addEventListener('click', () => {
+            if (myStream) {
+                const audioTrack = myStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isAudioEnabled = audioTrack.enabled;
+                    toggleAudioBtn.textContent = isAudioEnabled ? 'Couper le micro' : 'Activer le micro';
+                }
+            }
+        });
+
+        // Contrôle vidéo
+        const toggleVideoBtn = document.getElementById('toggle-video-btn');
+        toggleVideoBtn.addEventListener('click', () => {
+            if (myStream) {
+                const videoTrack = myStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isVideoEnabled = videoTrack.enabled;
+                    toggleVideoBtn.textContent = isVideoEnabled ? 'Couper la caméra' : 'Activer la caméra';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

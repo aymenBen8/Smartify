@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Dashboard</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Lien vers ton fichier CSS -->
+    <style>
+      /* Reset and base styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f7fb;
+    color: #333;
+}
+
+/* Sidebar */
+/* Sidebar */
+.sidebar {
+    width: 80px; /* Largeur fixe pour la sidebar */
+    background-color: #333; /* Couleur de fond */
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alignement à gauche */
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    color: #fff; /* Couleur du texte */
+    overflow: hidden; /* Masquer tout contenu qui dépasse */
+}
+
+/* Alignement et espacement pour les éléments de la liste */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%; /* Largeur totale de la liste */
+}
+
+.sidebar ul li {
+    margin: 10px 0; /* Espacement entre les éléments */
+    width: 100%; /* Prendre toute la largeur disponible */
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #fff; /* Couleur du texte */
+    font-size: 1em; /* Réduction de la taille du texte */
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box; /* Inclure le padding dans la largeur totale */
+    overflow: hidden; /* Masquer le texte qui dépasse */
+}
+
+.sidebar ul li a:hover {
+    background-color: #444; /* Couleur de fond au survol */
+    border-radius: 5px; /* Effet arrondi au survol */
+}
+
+.sidebar ul li a span {
+    margin-left: 10px; /* Espacement entre l'icône et le texte */
+    white-space: nowrap; /* Éviter le retour à la ligne du texte */
+    overflow: hidden; /* Masquer le texte qui dépasse */
+    text-overflow: ellipsis; /* Ajouter des points de suspension si le texte est trop long */
+}
+
+
+/* Horizontal Menu */
+.horizontal-menu {
+    background-color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex; /* Aligne les éléments horizontalement */
+    justify-content: center; /* Centre les éléments horizontalement */
+}
+
+.horizontal-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Rend la liste horizontale */
+}
+
+.horizontal-menu ul li {
+    margin-right: 20px; /* Espacement entre les éléments */
+}
+
+.horizontal-menu ul li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.2em;
+    padding: 5px 10px;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.horizontal-menu ul li a:hover {
+    background-color: #f0f4ff;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 120px; /* Cette valeur doit correspondre à la largeur de la sidebar */
+    padding: 20px; /* Ajouter un peu de padding pour l'esthétique */
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.header-actions button {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* Projects Overview */
+.projects-overview {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 40px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.projects-header h2 {
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.projects-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.projects-stats div {
+    text-align: center;
+}
+
+.projects-stats span {
+    display: block;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.current-date {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.projects-list {
+    display: flex;
+    gap: 20px;
+}
+
+.project-card {
+    background-color: #f0f4ff;
+    border-radius: 10px;
+    padding: 20px;
+    flex: 1;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+.project-card .project-date {
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    color: #888;
+}
+
+.project-card .project-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.project-card .project-subtitle {
+    font-size: 1em;
+    color: #555;
+}
+
+/* Client Messages */
+.client-messages {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+}
+
+.client-messages h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+}
+
+.message-card {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.05);
+}
+
+.message-card p {
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.message-date {
+    font-size: 0.9em;
+    color: #888;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    .sidebar {
+        width: 60px;
+    }
+
+    .sidebar ul li a span {
+        display: none;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .projects-list {
+        flex-direction: column;
+    }
+
+    .temoignage{
+        margin-top: 4Opx;
+    }
+    
+            /* Nouveaux styles pour l'animation */
+            .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, transform;
+        }
+
+        /* Styles modifiés pour l'animation */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20vh);
+            visibility: hidden;
+            transition: opacity 0.6s ease-out, transform 1.2s ease-out;
+            will-change: opacity, transform, visibility;
+        }
+
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+            visibility: visible;
+        }
+
+
+}
+
+
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="logo">Smartify</div>
+    <ul>
+        <li><a href="/modifier-profil-etudiant"><i class="icon-user"></i><span>Profil</span></a></li>
+        <li><a href="/schedule"><i class="icon-briefcase"></i><span>Emplois</span></a></li>
+        <li><a href="/messages"><i class="icon-envelope"></i><span>Messages</span></a></li>
+        <form id="logoutForm" action="/logout" method="get" style="display: inline;">
+            <button type="submit">Déconnexion</button>
+        </form>
+        
+    </ul>
+</aside>
+
+<!-- Barre de menu horizontale -->
+<nav class="horizontal-menu">
+    <ul>
+        <li><a href="/ressourcesEtudiant">Cours</a></li>
+        <li><a href="/student-video-courses">Cours Vidéos</a></li>
+        <li><a href="/quizzes">Quiz</a></li>
+    </ul>
+    <div id="user">Bonjour <%= username %></div>
+</nav>
+
+<!-- Contenu principal -->
+<main class="main-content">
+    <!-- Header -->
+    <header>
+        <div class="header-actions">
+            <button id="theme-switch"><i class="icon-moon"></i></button>
+            <button><i class="icon-plus"></i></button>
+            <button><i class="icon-bell"></i></button>
+            <div class="user-profile">
+                <img src="user-profile.jpg" alt="User">
+                <span>Aybüke C.</span>
+            </div>
+        </div>
+    </header>
+
+<!-- Projects Section -->
+<section class="projects-overview">
+    <div class="projects-header">
+        <h2>Cours à venir</h2>
+        <div class="projects-stats">
+            <div><span>45</span> In Progress</div>
+            <div><span>24</span> Upcoming</div>
+            <div><span>62</span> Total Projects</div>
+        </div>
+        <div class="current-date" id="current-date"></div>
+    </div>
+    <div class="projects-list">
+        <% if (enrollments && enrollments.length > 0) { %>
+            <% enrollments.forEach(enrollment => { %>
+                <% if (enrollment && enrollment.videoCourse && enrollment.videoCourse.title) { %>
+                    <div class="project-card">
+                        <div class="project-date">
+                            <% 
+                                if (enrollment.session && enrollment.session.date) { 
+                                    const sessionDate = new Date(enrollment.session.date);
+                                    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                                    const formattedDate = sessionDate.toLocaleDateString('fr-FR', options);
+                                    %>
+                                    <%= formattedDate %>
+                                <% } else { %>
+                                    Date: Information non disponible
+                                <% } %>
+                        </div>
+                        <div class="project-title"><%= enrollment.videoCourse.title %></div>
+                        <div class="project-subtitle">
+                            <%= enrollment.videoCourse.professor && enrollment.videoCourse.professor.name ? enrollment.videoCourse.professor.name : 'Professeur non spécifié' %>
+                        </div>
+                        <% if (enrollment.session && enrollment.session._id) { %>
+                            <a href="/video-session/<%= enrollment.session._id %>">Rejoindre la session</a>
+                        <% } else { %>
+                            <span>Session non disponible</span>
+                        <% } %>
+                    </div>
+                <% } %>
+            <% }) %>
+        <% } else { %>
+            <p>Vous n'êtes inscrit à aucun cours pour le moment.</p>
+        <% } %>
+    </div>
+</section>
+
+    <!-- Client Messages Section -->
+    <section class="client-messages">
+        <h2>Client Messages</h2>
+        <div class="message-card">
+            <p><strong>Mark</strong></p>
+            <p>Hey, can you tell me about progress of project? I'm waiting for your response.</p>
+            <div class="message-date">Dec, 12</div>
+        </div>
+    </section>
+
+    
+    <section class="projects-overview">
+        <div class="projects-header">
+            <h2>témoignages</h2>
+          
+            <div class="current-date" id="current-date"></div>
+        </div>
+        <div class="projects-list">
+                    <div class="project-card">
+                        <div class="project-date">
+                                nom prénom
+                        </div>
+                        <div class="project-subtitle">Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.</div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-date">
+                                nom prénom
+                        </div>
+                        <div class="project-subtitle">Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.</div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-date">
+                                nom prénom
+                        </div>
+                        <div class="project-subtitle">Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.</div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-date">
+                                nom prénom
+                        </div>
+                        <div class="project-subtitle">Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.Avis de l'utilisateur sur le site.</div>
+                    </div>
+        </div>
+    </section>
+            <!-- Section pour le contenu animé -->
+            <section class="animated-content">
+                <h2>Contenu animé au défilement</h2>
+                <div class="fade-in-section">
+                    <div class="animated-item">
+                        <h3>Élément 1</h3>
+                        <p>Ce contenu apparaîtra avec une animation de fade-in lors du défilement.</p>
+                    </div>
+                </div>
+                <div class="fade-in-section">
+                    <div class="animated-item">
+                        <h3>Élément 2</h3>
+                        <p>Un autre élément qui s'animera au défilement.</p>
+                    </div>
+                </div>
+                <div class="fade-in-section">
+                    <div class="animated-item">
+                        <h3>Élément 3</h3>
+                        <p>Encore un élément avec animation au défilement.</p>
+                    </div>
+                </div>
+            </section>
+    
+</main>
+
+<script>
+    // Script pour le switch de thème
+    document.getElementById('theme-switch').addEventListener('click', function() {
+        document.body.classList.toggle('dark-theme');
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateElement = document.getElementById('current-date');
+        
+        // Création d'une nouvelle instance de la date
+        const now = new Date();
+        
+        // Options pour le format de date
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        
+        // Formatage de la date en chaîne de caractères
+        const formattedDate = now.toLocaleDateString('fr-FR', options);
+        
+        // Mise à jour du contenu de la div avec la date formatée
+        dateElement.textContent = formattedDate;
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+            const faders = document.querySelectorAll('.fade-in-section');
+
+            const appearOptions = {
+                threshold: 0,
+                rootMargin: "0px 0px -100px 0px"
+            };
+
+            const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    } else {
+                        entry.target.classList.add('is-visible');
+                        appearOnScroll.unobserve(entry.target);
+                    }
+                });
+            }, appearOptions);
+
+            faders.forEach(fader => {
+                appearOnScroll.observe(fader);
+            });
+        });
+
+
+</script>
+</body>
+</html>
+ 
